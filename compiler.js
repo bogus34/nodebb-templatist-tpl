@@ -2,9 +2,8 @@ var fs = require('fs'),
     path = require('path'),
     importRegex = /[ \t]*<!-- IMPORT ([\s\S]*?)? -->[ \t]*/;
 
-function compiler(paths, relativePath, targetPath,  callback) {
-    var filePath = paths[relativePath],
-        compiledFilePath = path.join(targetPath, relativePath);
+function compiler(paths, relativePath,  callback) {
+    var filePath = paths[relativePath];
     fs.readFile(filePath, function(err, file) {
         if (err) {
             callback(err);
@@ -27,7 +26,7 @@ function compiler(paths, relativePath, targetPath,  callback) {
         }
 
         files = {};
-        files[compiledFilePath] = file;
+        files[relativePath] = file;
         callback(null, {files: files, warnings: warnings});
     });
 };
