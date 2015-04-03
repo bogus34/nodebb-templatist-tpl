@@ -1,6 +1,6 @@
 "use strict";
 
 module.exports = function(Templatist, viewsDir) {
-    require('./compiler')(Templatist);
-    require('./loaders/serverside')(Templatist, viewsDir);
+    require('./lib/compiler')(Templatist);
+    require('./lib/loaders/serverside')(Templatist, viewsDir);
 };
