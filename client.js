@@ -49,6 +49,10 @@ $(window).one('action:init-templatist', function(e, options) {
             templates.registerHelper(name, helper);
         };
 
+        loader.setGlobal = function(name, value) {
+            templates.setGlobal(name, value);
+        };
+
         Templatist.registerLoader('tpl', loader);
     };
 }));
