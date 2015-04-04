@@ -9,12 +9,10 @@ $(window).one('action:init-templatist', function(e, options) {
 });
 "use strict";
 
-/* global jQuery, templates */
-
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
-        define('nodebb-templatist-tpl/loaders/clientside', factory);
+        define('nodebb-templatist-tpl/loaders/common', factory);
     } else if (typeof exports === 'object') {
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
@@ -22,22 +20,52 @@ $(window).one('action:init-templatist', function(e, options) {
         module.exports = factory();
     } else {
         // Browser globals (root is window)
-        root.TemplatistTplLoader = factory(root.b);
+        root.TemplatistTplLoaderCommon = factory();
     }
 }(this, function() {
-    return function(Templatist, options) {
-        var createRenderFn = function(template) {
+    return {
+        addCommonMethods: function(loader, templates) {
+            loader.registerHelper = function(name, helper) {
+                templates.registerHelper(name, helper);
+            };
+
+            loader.setGlobal = function(name, value) {
+                templates.setGlobal(name, value);
+            };
+        },
+
+        mkRender: function(template, templates) {
             return function(name, block, data, fn) {
                 templates.parse(template, block, data, function(template){ fn(null, template); });
             };
-        };
+        }
+    };
+}));
+"use strict";
 
+/* global jQuery, templates */
+
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define('nodebb-templatist-tpl/loaders/clientside', ['nodebb-templatist-tpl/loaders/common'], factory);
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory(require('./common'));
+    } else {
+        // Browser globals (root is window)
+        root.TemplatistTplLoader = factory(root.TemplatistTplLoaderCommon);
+    }
+}(this, function(common) {
+    return function(Templatist, options) {
         var loader = function(name, callback) {
             jQuery.ajax({
                 url: options.relative_path + '/templates/' + name + '.tpl' + (options.cache_buster ? '?v=' + options.cache_buster : ''),
                 type: 'GET',
                 success: function(data) {
-                    callback(null, createRenderFn(data.toString()));
+                    callback(null, common.mkRender(data, templates));
                 },
                 error: function(error) {
                     callback(new Error("Unable to load template: " + template + " (" + error.statusText + ")"));
@@ -45,13 +73,7 @@ $(window).one('action:init-templatist', function(e, options) {
             });
         };
 
-        loader.registerHelper = function(name, helper) {
-            templates.registerHelper(name, helper);
-        };
-
-        loader.setGlobal = function(name, value) {
-            templates.setGlobal(name, value);
-        };
+        common.addCommonMethods(loader, templates);
 
         Templatist.registerLoader('tpl', loader);
     };
